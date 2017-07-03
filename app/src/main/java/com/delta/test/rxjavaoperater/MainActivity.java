@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -11,10 +13,12 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = MainActivity.class.getName();
 
     int a = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,13 +133,100 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        Observable.interval(5, TimeUnit.SECONDS, Schedulers.trampoline()).just(12)
+        //interval无效果
+        /*Observable.interval(5, TimeUnit.SECONDS, Schedulers.trampoline()).just(12)
                 .subscribe(new Consumer<Integer>() {
                     @Override
                     public void accept(@NonNull Integer integer) throws Exception {
                         Log.i(TAG, "accept: " + integer);
                     }
+                });*/
+
+        //timer无效果
+        Log.i(TAG, "onCreate: 测试延时");
+        Observable.timer(5, TimeUnit.SECONDS, Schedulers.trampoline()).just(12).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer aLong) throws Exception {
+                Log.i(TAG, "accept: " + aLong);
+            }
+        });
+
+        //map
+        Observable.just(1, 2, 3).map(new Function<Integer, String>() {
+            @Override
+            public String apply(@NonNull Integer integer) throws Exception {
+                return integer + " hehe";
+            }
+        }).subscribe(new Consumer<String>() {
+            @Override
+            public void accept(@NonNull String s) throws Exception {
+                Log.i(TAG, "map-accept: " + s);
+            }
+        });
+
+        //flatMap，concatMap
+        List<String> course_tom = new ArrayList<>();
+        course_tom.add("语文");
+        course_tom.add("数学");
+        course_tom.add("英语");
+        Student student_tom = new Student("tom", course_tom);
+        List<String> course_cat = new ArrayList<>();
+        course_cat.add("物理");
+        course_cat.add("化学");
+        course_cat.add("生物");
+        Student student_cat = new Student("cat", course_cat);
+        List<String> course_dog = new ArrayList<>();
+        course_dog.add("政治");
+        course_dog.add("历史");
+        course_dog.add("地理");
+        Student student_dog = new Student("dog", course_dog);
+        Observable.just(student_tom, student_cat, student_dog).flatMap(new Function<Student, ObservableSource<String>>() {
+            @Override
+            public ObservableSource<String> apply(@NonNull Student student) throws Exception {
+                return Observable.fromIterable(student.getCourse());
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(@NonNull String s) throws Exception {
+                        Log.i(TAG, "flatMap-accept: " + s);
+                    }
                 });
+
+        //switchMap
+        Observable.just(1, 2, 3, 4, 5, 6, 7, 8).switchMap(new Function<Integer, ObservableSource<String>>() {
+            @Override
+            public ObservableSource<String> apply(@NonNull Integer integer) throws Exception {
+                //每次生成新的Observable都开启一个新的线程，在不同线程
+                return Observable.just(integer + "").subscribeOn(Schedulers.io());
+            }
+        })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(@NonNull String s) throws Exception {
+                        Log.i(TAG, "flatMap-accept: " + s);
+                    }
+                });
+
+        //split
+        /*Observable.just("Wh","at i","s y","ou","r ","na","me")
+                .flatMap(new Function<String, ObservableSource<String>>() {
+                    @Override
+                    public ObservableSource<String> apply(@NonNull String s) throws Exception {
+                        return Observable.fromArray(s.split(" "));
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(@NonNull String s) throws Exception {
+                        Log.i(TAG, "split-accept: "+s);
+                    }
+                });*/
+
 
     }
 }
