@@ -210,8 +210,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        //split
-        /*Observable.just("Wh","at i","s y","ou","r ","na","me")
+        //split rxjava2弃用
+        /*String [] arr = new String[]{"Wh","at i","s y","ou","r ","na","me"};
+        Observable.fromArray(arr)
                 .flatMap(new Function<String, ObservableSource<String>>() {
                     @Override
                     public ObservableSource<String> apply(@NonNull String s) throws Exception {
@@ -226,6 +227,9 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, "split-accept: "+s);
                     }
                 });*/
+
+        System.out.println("-----------------------------filter---------------------------");
+        //Observable.just()
 
 
     }
