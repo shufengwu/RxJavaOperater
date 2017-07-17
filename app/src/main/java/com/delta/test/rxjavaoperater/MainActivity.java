@@ -19,6 +19,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -230,6 +231,114 @@ public class MainActivity extends AppCompatActivity {
 
         System.out.println("-----------------------------filter---------------------------");
         //Observable.just()
+        //filter
+        //take
+        Observable.interval(1, TimeUnit.SECONDS).take(1).filter(new Predicate<Long>() {
+            @Override
+            public boolean test(@NonNull Long aLong) throws Exception {
+                return aLong > 5;
+            }
+        }).subscribe(new Consumer<Long>() {
+            @Override
+            public void accept(@NonNull Long aLong) throws Exception {
+                Log.i(TAG, "accept: " + aLong);
+            }
+        });
+
+        //takeLast
+        Observable.just(1, 2, 3, 4, 5, 6).takeLast(2).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer integer) throws Exception {
+                Log.i(TAG, "takeLast-accept: " + integer);
+            }
+        });
+
+        //last
+        Observable.just(1, 2, 3, 4, 5).last(0).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer s) throws Exception {
+                Log.i(TAG, "last-accept: " + s);
+            }
+        });
+
+        //skip
+        Observable.just(1, 2, 3, 4, 5).skip(2).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer s) throws Exception {
+                Log.i(TAG, "skip-accept: " + s);
+            }
+        });
+
+
+        //first
+        Observable.just(1, 2, 3, 4, 5).first(0).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer s) throws Exception {
+                Log.i(TAG, "first-accept: " + s);
+            }
+        });
+
+        //elementAt
+        Observable.just(1, 2, 3, 4, 5).elementAt(4, 0).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer s) throws Exception {
+                Log.i(TAG, "elementAt-accept: " + s);
+            }
+        });
+
+        //sample
+//        Observable.create(new ObservableOnSubscribe<Integer>() {
+//            @Override
+//            public void subscribe(@NonNull ObservableEmitter<Integer> e) throws Exception {
+//                for (int i = 0; ; i++) {
+//                    e.onNext(9);
+//                }
+//            }
+//        }).subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                //.sample(2, TimeUnit.SECONDS)
+//                .subscribe(new Consumer<Integer>() {
+//            @Override
+//            public void accept(@NonNull Integer s) throws Exception {
+//                Log.i(TAG, "sample-accept: " + s);
+//            }
+//        });
+
+        //throttleFirst
+        /*Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<Integer> e) throws Exception {
+                for (int i = 0; ; i++) {
+                    e.onNext(8);
+                }
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .throttleFirst(2, TimeUnit.SECONDS).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer s) throws Exception {
+                Log.i(TAG, "throttleFirst-accept: " + s);
+            }
+        });*/
+
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<Integer> e) throws Exception {
+                for (int i = 0; ; i++) {
+                    e.onNext(8);
+                    Thread.sleep(3100);
+                }
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .throttleWithTimeout(3, TimeUnit.SECONDS).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer s) throws Exception {
+                Log.i(TAG, "throttleWithTimeout-accept: " + s);
+            }
+        });
+
+
 
 
     }
