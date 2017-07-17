@@ -17,6 +17,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
+import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(new Consumer<Integer>() {
                     @Override
                     public void accept(@NonNull Integer integer) throws Exception {
-                        Log.i(TAG, "accept: " + integer);
+                        Log.i(TAG, "just-accept: " + integer);
                     }
                 });
 
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         })*/.subscribe(new Consumer<Integer>() {
             @Override
             public void accept(@NonNull Integer integer) throws Exception {
-                Log.i(TAG, "accept: " + integer);
+                Log.i(TAG, "fromArray-accept: " + integer);
             }
         });
 
@@ -337,6 +338,175 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "throttleWithTimeout-accept: " + s);
             }
         });
+
+
+
+
+        //timeout
+        /*Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<Integer> e) throws Exception {
+                for (int i = 0; i < 10; i++) {
+                    e.onNext(i);
+                }
+            }
+        }).timeout(2, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(@NonNull Integer integer) throws Exception {
+                        Log.i(TAG, "timeout-accept: " + integer);
+                    }
+                });*/
+
+        //distinct
+        Observable.just(1, 2, 3, 5, 7, 3, 1, 5, 8, 7)
+                .distinct()
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(@NonNull Integer integer) throws Exception {
+                        Log.i(TAG, "distinct-accept: " + integer);
+                    }
+                });
+
+        //distinctUntilChanged
+        Observable.just(1, 2, 3, 3, 5, 7, 7, 3, 1, 5)
+                .distinctUntilChanged()
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(@NonNull Integer integer) throws Exception {
+                        Log.i(TAG, "distinctUntilChanged-accept: " + integer);
+                    }
+                });
+
+        //ofType
+        Observable.create(new ObservableOnSubscribe<Object>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<Object> e) throws Exception {
+                e.onNext(1);
+                e.onNext(2);
+                e.onNext(3);
+                e.onNext("he");
+                e.onNext("du");
+                e.onNext("sue");
+            }
+        }).ofType(String.class)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Object>() {
+                    @Override
+                    public void accept(@NonNull Object object) throws Exception {
+                        Log.i(TAG, "ofType-accept: " + object.toString());
+                    }
+                });
+
+        //merge
+        //startWith
+        Observable<Integer> odds = Observable.just(1, 3, 5, 7, 9, 11, 13, 15, 17, 19).subscribeOn(Schedulers.io());
+        Observable<Integer> evens = Observable.just(2, 4, 6, 8, 10, 12, 14, 16, 18, 20).subscribeOn(Schedulers.io());
+        Observable.merge(odds, evens).startWith(0).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer integer) throws Exception {
+                Log.i(TAG, "merge-accept: " + integer);
+            }
+        });
+
+        //zip
+        Observable<Integer> odds2 = Observable.just(1, 3, 5, 7, 9);
+        Observable<Integer> evens2 = Observable.just(2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
+        Observable.zip(odds2, evens2, new BiFunction<Integer, Integer, String>() {
+            @Override
+            public String apply(@NonNull Integer integer, @NonNull Integer integer2) throws Exception {
+                return integer + "----" + integer2;
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(@NonNull String s) throws Exception {
+                        Log.i(TAG, "zip-accept: " + s);
+                    }
+                });
+
+        Observable<Integer> odds3 = Observable.just(1, 3, 5, 7, 9);
+        Observable<Integer> evens3 = Observable.just(2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
+        Observable.combineLatest(odds3, evens3, new BiFunction<Integer, Integer, String>() {
+            @Override
+            public String apply(@NonNull Integer integer, @NonNull Integer integer2) throws Exception {
+                return integer + "----" + integer2;
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(@NonNull String s) throws Exception {
+                        Log.i(TAG, "combineLatest-accept: " + s);
+                    }
+                });
+
+        //join
+        //groupJoin
+        final String[] str_w = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+        Observable<String> odds4 = Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<String> e) throws Exception {
+                for (int i = 0; i < 10; i++) {
+                    e.onNext(str_w[i] + " odd");
+                    Thread.sleep(1000);
+                }
+            }
+        }).subscribeOn(Schedulers.io());
+
+        Observable<String> evens4 = Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<String> e) throws Exception {
+                for (int i = 0; i < 10; i++) {
+                    e.onNext(i + " even");
+                    Thread.sleep(1000);
+                }
+
+            }
+        }).subscribeOn(Schedulers.io());
+
+        evens4.join/*.groupJoin*/(odds4, new Function<String, ObservableSource<Long>>() {
+                    @Override
+                    public ObservableSource<Long> apply(@NonNull String integer) throws Exception {
+                        return Observable.timer(2, TimeUnit.SECONDS);
+                    }
+                }, new Function<String, ObservableSource<Long>>() {
+                    @Override
+                    public ObservableSource<Long> apply(@NonNull String integer) throws Exception {
+                        return Observable.timer(0, TimeUnit.SECONDS);
+                    }
+                }, new BiFunction<String, String, String>() {
+                    @Override
+                    public String apply(@NonNull String integer, @NonNull String integer2) throws Exception {
+                        return integer + "----" + integer2;
+                    }
+                }
+                /*, new BiFunction<String, Observable<String>, String>() {
+
+                    @Override
+                    public String apply(@NonNull String s, @NonNull Observable<String> stringObservable) throws Exception {
+                        stringObservable.subscribe(new Consumer<String>() {
+                            @Override
+                            public void accept(@NonNull String s) throws Exception {
+                                Log.i(TAG, "groupJoin1-accept: "+s);
+                            }
+                        });
+                        return s;
+                    }
+                }*/
+        ).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<String>() {
+            @Override
+            public void accept(@NonNull String s) throws Exception {
+                Log.i(TAG, "groupJoin2-accept: " + s);
+            }
+        });
+
+
 
 
 
