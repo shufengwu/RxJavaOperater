@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Notification;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
@@ -22,6 +24,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.schedulers.Timed;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -322,7 +325,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
 
-        Observable.create(new ObservableOnSubscribe<Integer>() {
+        //throttleWithTimeout
+        /*Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
             public void subscribe(@NonNull ObservableEmitter<Integer> e) throws Exception {
                 for (int i = 0; ; i++) {
@@ -337,9 +341,7 @@ public class MainActivity extends AppCompatActivity {
             public void accept(@NonNull Integer s) throws Exception {
                 Log.i(TAG, "throttleWithTimeout-accept: " + s);
             }
-        });
-
-
+        });*/
 
 
         //timeout
@@ -507,9 +509,104 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        //switchOnNext
+        /*Observable<Observable<Long>> observables =Observable.interval(7,TimeUnit.SECONDS).map(new Function<Long, Observable<Long>>() {
+            @Override
+            public Observable<Long> apply(@NonNull Long aLong) throws Exception {
+                return Observable.interval(2,TimeUnit.SECONDS).map(new Function<Long, Long>() {
+                    @Override
+                    public Long apply(@NonNull Long aLong) throws Exception {
+                        return aLong*10;
+                    }
+                }).take(5);
+            }
+        });
+        Observable.switchOnNext(observables).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        Log.i(TAG, "switchOnNext-accept: "+aLong);
+                    }
+                });*/
+
+        Observable.just("hfjahkjdfkjak\nkjdslkalkjf", "kdsjlkfjlsj\nskjfdlkja\njlkfsdl", "sdklfk;lsk").subscribe(new Consumer<String>() {
+            @Override
+            public void accept(@NonNull String s) throws Exception {
+                Log.i(TAG, "byLine-accept: " + s);
+            }
+        });
+
+        //materialize
+        Observable.just(1, 2, 3, 4, 5, 6).materialize().subscribe(new Observer<Notification<Integer>>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@NonNull Notification<Integer> integerNotification) {
+                Log.i(TAG, "materialize-onNext: " + integerNotification.getClass().getName() + "----" + integerNotification.getValue());
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+        Observable.just(1, 2, 3, 4, 5).timestamp().subscribe(new Consumer<Timed<Integer>>() {
+            @Override
+            public void accept(@NonNull Timed<Integer> integerTimed) throws Exception {
+                Log.i(TAG, "timestamp-accept: " + integerTimed.time() + "---" + integerTimed.value());
+            }
+        });
 
 
+        //doOnEach
+        Observable.just(1, 2, 3, 4, 5).doOnEach(new Consumer<Notification<Integer>>() {
+            @Override
+            public void accept(@NonNull Notification<Integer> integerNotification) throws Exception {
+                Log.i(TAG, "doOnEach-accept: " + integerNotification.toString());
+            }
+        }).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer integer) throws Exception {
+                Log.i(TAG, "doOnEach-accept: " + integer);
+            }
+        });
 
+        //doOnNext
+        Observable.just(1, 2, 3, 4, 5).doOnNext(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer integer) throws Exception {
+                Log.i(TAG, "doOnNext-accept--: " + integer);
+            }
+        }).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer integer) throws Exception {
+                Log.i(TAG, "doOnNext-accept: " + integer);
+            }
+        });
 
+        //doOnSubscribe
+        Observable.just(1, 2, 3, 4, 5).doOnSubscribe(new Consumer<Disposable>() {
+            @Override
+            public void accept(@NonNull Disposable disposable) throws Exception {
+                Log.i(TAG, "doOnSubscribe-accept-disposable: " + disposable.toString());
+            }
+        }).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(@NonNull Integer integer) throws Exception {
+                Log.i(TAG, "doOnSubscribe-accept: " + integer);
+            }
+        });
+
+        //doOncomplete
+        //doOnError
     }
 }
